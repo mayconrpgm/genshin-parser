@@ -83,20 +83,22 @@ class Character(object):
     weapon_type = ''
     level_info = []
 
-    def __init__(self, character_name, element, weapon_type, portrait_image_url, character_level_info: CharacterLevelInfo):
+    def __init__(self, character_name, element, weapon_type, portrait_image_url, character_level_info: list):
         self.name = character_name
         self.element = element
         self.weapon_type = weapon_type
         self.level_info = character_level_info
+        self.portrait_image_url= portrait_image_url
 
     def to_csv_format(self):
         string_reponse = ''
 
         for info in self.level_info:
-            string_reponse += '{}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(
-                self.name.capitalize(),
+            string_reponse += '{}, {}, {}, "{}", {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}, {}\n'.format(
+                self.name,
                 self.element.capitalize(),
                 self.weapon_type.capitalize(),
+                self.portrait_image_url,
                 info.level,
                 info.hp,
                 info.base_atk,

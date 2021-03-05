@@ -5,18 +5,20 @@ from bs4 import BeautifulSoup
 from character_info import *
 
 
-__HEADER = 'name, element, weapon type, lv, base hp, base atk, base def, elemental mastery, crit rate, crit dmg, atk %, def %, hp %, phys dmg %, elem dmg %, healing bonus\n'
-
+__HEADER = 'name, element, weapon type, portrait_image_url, lv, base hp, base atk, base def, elemental mastery, crit rate, crit dmg, atk %, def %, hp %, phys dmg %, elem dmg %, healing bonus\n'
+__BASE_URL = "https://genshin.honeyhunterworld.com/"
+__CHARACTER_LIST_PATH = "db/char/characters/"
 
 def get_data_for_character(character):
-    base_url = "https://genshin.honeyhunterworld.com/"
     character_path = "db/char/"
     img_path = "img/char/"
-    char_stats_url = base_url + character_path + character
-    char_img_url = base_url + img_path + character
+    char_stats_url = __BASE_URL + character_path + character
+    char_img_url = __BASE_URL + img_path + character
 
     req = requests.get(char_stats_url)
     soup = BeautifulSoup(req.content, 'html.parser')
+
+    character_name = soup.find('h1', class_ = 'post-title entry-title').text.strip()
 
     live_data = soup.find(id="live_data")  # ignores content from beta version
 
@@ -28,7 +30,7 @@ def get_data_for_character(character):
     character_stats = parse_character_level_stats(
         live_data.find(id="scroll_stat").next_sibling)
 
-    character = Character(character, character_element,
+    character = Character(character_name, character_element,
                           character_weapon_type, char_img_url, character_stats)
 
     print(__HEADER)
@@ -52,6 +54,23 @@ def parse_character_element(element_image_path):
         return 'anemo'
     elif 'geo' in element_image_path:
         return 'geo'
+
+def get_character_list():
+    character_list_url = __BASE_URL + __CHARACTER_LIST_PATH
+    char_names = []
+
+    req = requests.get(character_list_url)
+    soup = BeautifulSoup(req.content, 'html.parser')
+
+    char_containers = soup.find_all(class_ = 'char_sea_cont')
+
+    for char_container in char_containers:
+        char_path = char_container.find('a')['href']
+        char_names.append(char_path.split('/')[-2])
+
+    char_names.sort()
+    return char_names
+
 
 
 def parse_character_level_stats(stats_table):
@@ -97,7 +116,10 @@ def normalize_stat_name(stat_name):
 
 
 def main():
-    characters = ['diluc', 'razor', 'xiangling']
+    #characters = ['diluc', 'razor', 'xiangling']
+    characters = get_character_list()
+
+    print(characters)
 
     with open('character_level_info.csv', 'w') as writer:
         writer.write(__HEADER)
